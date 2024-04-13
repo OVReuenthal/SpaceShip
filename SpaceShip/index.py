@@ -1,5 +1,6 @@
 import pygame, random
 
+print("pp")
 
 WIDTH = 800
 HEIGHT = 600
