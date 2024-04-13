@@ -1,6 +1,6 @@
 import pygame, random
-
-
+ 
+'''f'''
 WIDTH = 800
 HEIGHT = 600
 BLACK = (0,0,0)
@@ -129,6 +129,7 @@ fondo = pygame.image.load("assets/fondo.png")
 background = pygame.transform.scale(fondo, (WIDTH, HEIGHT))
 
 laser_sound = pygame.mixer.Sound("assets/laser5.ogg")
+explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
 
 all_sprites = pygame.sprite.Group()
 meteor_list = pygame.sprite.Group()
@@ -181,7 +182,7 @@ while running:
     hits = pygame.sprite.groupcollide(enemy_list, bullets, True, True)
     for hit in hits:
         pass
-
+        explosion_sound.play( )
         enemy = Enemy()
         all_sprites.add(enemy)
         enemy_list.add(enemy)
