@@ -1,16 +1,34 @@
 import pygame, random
  
-'''f'''
 WIDTH = 800
 HEIGHT = 600
 BLACK = (0,0,0)
 WHITE = (255,255,255)
+GREEN = (0,255,0)
 
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("SpaceShip")
 clock = pygame.time.Clock()
+
+def draw_text(surface, text, size, x, y):
+    font = pygame.font.SysFont('serif', size)
+    text_surface = font.render(text, True, WHITE) 
+    text_rect  = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surface.blit(text_surface, text_rect)
+
+def draw_shield_bar(surface , x, y, percentage):
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 10
+    fill = (percentage/150)*BAR_LENGTH
+    border = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill = pygame.Rect(x, y, fill, BAR_HEIGHT)
+    pygame.draw.rect(surface, GREEN, fill)
+    pygame.draw.rect(surface, WHITE, border, 2)
+
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -22,6 +40,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.centerx = WIDTH // 2
         self.rect.bottom = HEIGHT -10
         self.speed_x = 0
+        self.shield = 150
 
 
     def update(self):
@@ -152,6 +171,8 @@ for i in range(enemies):
     enemy_list.add(enemy)
     enemyList.append(enemy)
 
+score = 0
+
 running= True
 while running:
     clock.tick(60)
@@ -174,32 +195,49 @@ while running:
     hits = pygame.sprite.groupcollide(meteor_list, bullets, True, True)
     for hit in hits:
         pass
+        score += 10
         meteor = Meteor()
         all_sprites.add(meteor)
         meteor_list.add(meteor)
+        explosion_sound.play()    
 
 
     hits = pygame.sprite.groupcollide(enemy_list, bullets, True, True)
     for hit in hits:
         pass
+        score += 50
         explosion_sound.play( )
         enemy = Enemy()
         all_sprites.add(enemy)
         enemy_list.add(enemy)
 
     hits = pygame.sprite.spritecollide(player, meteor_list, True)
-    if hits:
-        running = False
+    for hit in hits:
+        player.shield -= 100
+        meteor = Meteor()
+        all_sprites.add(meteor)
+        meteor_list.add(meteor)
+        explosion_sound.play()  
+        if player.shield <= 0:            
+            running = False
+
 
     hits = pygame.sprite.spritecollide(player, enemy_bullets, True)
-    if hits:
-        running = False
+    for hit in hits:
+        player.shield -= 50
+        if player.shield <= 0:            
+            running = False
+        
 
     screen.blit(background, [0,0])
 
     all_sprites.draw(screen)
 
-    pygame.display.flip()
+    draw_text(screen, "Score: " + str(score), 20, WIDTH // 2, 10)
+    
+    draw_shield_bar(screen, 5, 5, player.shield)
+
+    pygame.display.flip()  
 pygame.quit()
 
 
