@@ -178,10 +178,10 @@ while running:
     clock.tick(60)
     
     if(random.randint(0, 30 ) == 5):
-        enemyList[random.randint(0,enemies-1)].shoot()
+        enemyList[1].shoot()
     
 
-    for event in pygame.event.get():
+    for event in pygame.event.get(): 
         if event.type == pygame.QUIT:
             running = False
 
