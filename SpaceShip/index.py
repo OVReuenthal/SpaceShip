@@ -210,6 +210,8 @@ while running:
         enemy = Enemy()
         all_sprites.add(enemy)
         enemy_list.add(enemy)
+        enemyList.append(enemy)  
+        enemyList.remove(hit) 
 
     hits = pygame.sprite.spritecollide(player, meteor_list, True)
     for hit in hits:
