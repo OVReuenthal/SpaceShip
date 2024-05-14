@@ -143,6 +143,53 @@ class Bullet2(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
+class explosion(pygame.sprite.Sprite):
+    def __init__(self, center):
+        super().__init__()
+        self.image = explosion_animation[0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 50
+    
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(explosion_animation):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = explosion_animation[self.frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
+
+def show_go_screen():
+    screen.blit(background, (0,0))
+    draw_text(screen, "SPACE-SHIP", 70, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, "Press a key to start", 18, WIDTH / 2, HEIGHT / 2)
+    draw_text(screen, "Press key", 20, WIDTH / 2, HEIGHT * 3 / 4)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                waiting = False
+
+explosion_animation = []
+
+for i in range(0,7):
+    file = 'assets/regularExplosion0{}.png'.format(i)
+
+    img = pygame.image.load(file).convert()
+    img.set_colorkey(BLACK)
+    img_scale = pygame.transform.scale(img, (70,70))
+    explosion_animation.append(img_scale)
 
 fondo = pygame.image.load("assets/fondo.png")
 background = pygame.transform.scale(fondo, (WIDTH, HEIGHT))
@@ -150,35 +197,45 @@ background = pygame.transform.scale(fondo, (WIDTH, HEIGHT))
 laser_sound = pygame.mixer.Sound("assets/laser5.ogg")
 explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
 
-all_sprites = pygame.sprite.Group()
-meteor_list = pygame.sprite.Group()
-enemy_list = pygame.sprite.Group()
-bullets    = pygame.sprite.Group()
-enemy_bullets = pygame.sprite.Group()
 
-enemyList = []
 
-enemies = 4
 
-player = Player()
-all_sprites.add(player)
-for i in range(enemies):
-    meteor = Meteor()
-    all_sprites.add(meteor)
-    meteor_list.add(meteor)
-    enemy = Enemy()
-    all_sprites.add(enemy)
-    enemy_list.add(enemy)
-    enemyList.append(enemy)
-
-score = 0
-
+game_over = True
 running= True
 while running:
+    if game_over:
+
+        show_go_screen()
+
+        game_over = False
+        all_sprites = pygame.sprite.Group()
+        meteor_list = pygame.sprite.Group()
+        enemy_list = pygame.sprite.Group()
+        bullets    = pygame.sprite.Group()
+        enemy_bullets = pygame.sprite.Group()
+
+        enemyList = []
+
+        enemies = 4
+
+        player = Player()
+        all_sprites.add(player)
+        for i in range(enemies):
+            meteor = Meteor()
+            all_sprites.add(meteor)
+            meteor_list.add(meteor)
+            enemy = Enemy()
+            all_sprites.add(enemy)
+            enemy_list.add(enemy)
+            enemyList.append(enemy)
+
+        score = 0
+
     clock.tick(60)
     
-    if(random.randint(0, 30 ) == 5):
-        enemyList[1].shoot()
+    for enemy in enemyList:
+        if random.randint(0, 60) == 5:  
+            enemy.shoot()
     
 
     for event in pygame.event.get(): 
@@ -196,6 +253,11 @@ while running:
     for hit in hits:
         pass
         score += 10
+        Explosion = explosion(hit.rect.center)
+        all_sprites.add(Explosion)
+
+        
+
         meteor = Meteor()
         all_sprites.add(meteor)
         meteor_list.add(meteor)
@@ -206,12 +268,18 @@ while running:
     for hit in hits:
         pass
         score += 50
+        
+        Explosion = explosion(hit.rect.center)
+        all_sprites.add(Explosion)
+
         explosion_sound.play( )
         enemy = Enemy()
+        enemyList.remove(hit) 
         all_sprites.add(enemy)
         enemy_list.add(enemy)
         enemyList.append(enemy)  
-        enemyList.remove(hit) 
+        
+
 
     hits = pygame.sprite.spritecollide(player, meteor_list, True)
     for hit in hits:
@@ -221,14 +289,16 @@ while running:
         meteor_list.add(meteor)
         explosion_sound.play()  
         if player.shield <= 0:            
-            running = False
+            game_over = True
+        
 
 
     hits = pygame.sprite.spritecollide(player, enemy_bullets, True)
     for hit in hits:
         player.shield -= 50
         if player.shield <= 0:            
-            running = False
+            game_over = True   
+    
         
 
     screen.blit(background, [0,0])
